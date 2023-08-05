@@ -48,23 +48,16 @@ while True:
             elif event.key == pygame.K_RIGHT and snake.direction != Direction.LEFT:
                 snake.direction = Direction.RIGHT
 
-    # old_state = snake.get_state(food.cords)
-    # move = next_move(old_state, game.n_games)
-    # if move.index(1) == 2:
-    #     snake.direction = Direction((snake.direction.value + 1) % 4)
-    # elif move.index(1) == 1:
-    #     snake.direction = Direction((snake.direction.value - 1) % 4)
+    old_state = snake.get_state(food.cords)
+    move = next_move(old_state, game.n_games)
+    if move.index(1) == 2:
+        snake.direction = Direction((snake.direction.value + 1) % 4)
+    elif move.index(1) == 1:
+        snake.direction = Direction((snake.direction.value - 1) % 4)
     
     if(snake.head == food.cords):
         food.isFoodExists = False
         game.score += 1
-    elif snake.head.x >= SCREEN_WIDTH or snake.head.x < 0 or \
-        snake.head.y >= SCREEN_HEIGHT or snake.head.y < 0 or \
-        snake.head in snake.body[1:]:
-        game.over()
-    
-    if(snake.head == food.cords):
-        food.isFoodExists = False
     elif snake.head.x >= SCREEN_WIDTH or snake.head.x < 0 or \
         snake.head.y >= SCREEN_HEIGHT or snake.head.y < 0 or \
         snake.head in snake.body[1:]:
