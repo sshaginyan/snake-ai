@@ -13,11 +13,9 @@ class Snake(pygame.sprite.Sprite):
         self.screen = screen
         self.head = self.body[0]
     def draw(self, isFoodExists):
-        for cord in self.body:
-            # TODO look into https://www.pygame.org/docs/ref/surface.html#pygame.Surface.blits
-            block = pygame.Surface((BOX_SIZE, BOX_SIZE))
-            block.fill(WHITE)
-            self.screen.blit(block, (cord.x, cord.y))
+        block = pygame.Surface((BOX_SIZE, BOX_SIZE))
+        block.fill(WHITE)
+        self.screen.blits([(block, (cord.x, cord.y)) for cord in self.body])
         self._move(isFoodExists)
     def _move(self, isFoodExists):
         head = self.body[0]
