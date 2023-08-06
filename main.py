@@ -12,12 +12,15 @@ from common import (Direction, SCREEN_HEIGHT, SCREEN_WIDTH)
 
 LR = 1e-3
 gamma = 0.9
+MAX_MEMORY = 100_000
+BATCH_SIZE = 1000
 
 # TODO figure out where this is coming from `adam`?
 #glob.glob("/home/adam/*.txt")
 #model = torch.load("./model/model.pth") if len(glob.glob("./model/*.pth")) == 1 else LinearQNet(11, 256, 3)
 model = LinearQNet(11, 256, 3)
 trainer = QTrainer(model, lr=LR, gamma=gamma)
+memory = deque(maxlen=MAX_MEMORY)
 
 game = Game()
 snake = Snake(game.screen)
@@ -63,14 +66,20 @@ while True:
     new_state = snake.get_state(food.cords)
     trainer.train_step(old_state, move, game.reward, new_state, game.game_over)
     
+    memory.append((old_state, move, game.reward, new_state, game.game_over))
+
+    if len(memory) > BATCH_SIZE:
+        mini_sample = random.sample(memory, BATCH_SIZE)        
+    else:
+        mini_sample = memory
+    
+    states, actions, rewards, next_states, dones = zip(*mini_sample)
+    trainer.train_step(states, actions, rewards, next_states, dones)
     # game.score
 
-    
-    
-    
 
 
-    
+
     
     if(snake.head == food.cords):
         food.isFoodExists = False
