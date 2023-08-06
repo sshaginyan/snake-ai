@@ -25,7 +25,9 @@ class Game:
         self.score = 0
         self.n_games += 1
         self.game_over = False
-        self.food.doesFoodExist = False
+        self.food.doesFoodExist = True
+        self.food.move(self.snake)
+        
     
     def detect_collisions(self):
         if self.food_collision():

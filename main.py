@@ -63,9 +63,11 @@ while True:
     food.draw()
     snake.move()
     game.detect_collisions()
-    if food.doesFoodExist:
+    if game.game_over:
+        game.reset()
+    elif food.doesFoodExist:
         snake.body.pop()
-    if not food.doesFoodExist:
+    else:
         food.move(snake)
     snake.draw()
     
