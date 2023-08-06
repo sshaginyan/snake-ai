@@ -6,6 +6,7 @@ class Snake(pygame.sprite.Sprite):
     def __init__(self, screen):
         super(Snake, self).__init__()
         # TODO bug can't add third box
+        # TODO put this in common.py, but we have #block bug ^^^
         self.body = [Point(75, 25), Point(50, 25)]
         self.direction = Direction.RIGHT
         self.screen = screen

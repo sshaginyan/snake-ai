@@ -54,14 +54,21 @@ while True:
         snake.direction = Direction((snake.direction.value + 1) % 4)
     elif move.index(1) == 1:
         snake.direction = Direction((snake.direction.value - 1) % 4)
+    snake._move(food.isFoodExists)
+    new_state = snake.get_state(food.cords)
+    
+
+    
     
     if(snake.head == food.cords):
         food.isFoodExists = False
         game.score += 1
+        game.reward = 10
     elif snake.head.x >= SCREEN_WIDTH or snake.head.x < 0 or \
         snake.head.y >= SCREEN_HEIGHT or snake.head.y < 0 or \
         snake.head in snake.body[1:]:
-        game.over()
+        game.reward = -10
+        game.game_over = True
 
     game.draw()
     snake.draw(food.isFoodExists)
