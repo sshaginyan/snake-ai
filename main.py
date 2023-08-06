@@ -6,13 +6,18 @@ import random
 from game import Game
 from food import Food
 from snake import Snake
-from model import LinearQNet
+from collections import deque
+from model import (LinearQNet, QTrainer)
 from common import (Direction, SCREEN_HEIGHT, SCREEN_WIDTH)
+
+LR = 1e-3
+gamma = 0.9
 
 # TODO figure out where this is coming from `adam`?
 #glob.glob("/home/adam/*.txt")
 #model = torch.load("./model/model.pth") if len(glob.glob("./model/*.pth")) == 1 else LinearQNet(11, 256, 3)
 model = LinearQNet(11, 256, 3)
+trainer = QTrainer(model, lr=LR, gamma=gamma)
 
 game = Game()
 snake = Snake(game.screen)
@@ -56,7 +61,14 @@ while True:
         snake.direction = Direction((snake.direction.value - 1) % 4)
     snake._move(food.isFoodExists)
     new_state = snake.get_state(food.cords)
+    trainer.train_step(old_state, move, game.reward, new_state, game.game_over)
     
+    # game.score
+
+    
+    
+    
+
 
     
     
