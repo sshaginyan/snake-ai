@@ -24,6 +24,7 @@ pygame.init()
 game = Game()
 snake = Snake(game.screen)
 food = Food(game.screen, snake)
+frame_iteration = 0
 
 epsilon = 0
 def get_next_snake_move(current_state, n_games):
@@ -46,7 +47,7 @@ def wall_collision(snake):
     return snake.head_cords.x >= SCREEN_WIDTH or snake.head_cords.x < 0 or \
         snake.head_cords.y >= SCREEN_HEIGHT or snake.head_cords.y < 0
 def snake_collision(snake):
-    return snake.head_cords in snake.body[1:]
+    return snake.head_cords in snake.body[1:len(snake.body)-2]
 
 while True:
     for event in pygame.event.get():
@@ -69,11 +70,16 @@ while True:
         print("Wall Colliision @ ", snake.head_cords) if wall_collision(snake) else print("Snake Collision @ ", snake.head_cords)
         game.reward = -10
         game.over = True
+    elif frame_iteration  >  100*len(snake.body):
+        print("Time out")
+        game.reward = -10
+        game.over = True
     elif food_collision(snake, food):
         print("Food Collision @ ", food.cords)
         game.score += 1
         game.reward = 10
         food.exists = False
+    
 
     if food.exists:
         snake.body.pop()
@@ -87,6 +93,7 @@ while True:
     trainer.train_step(current_state, snake_move, game.reward, new_state, game.over)
     memory.append((current_state, snake_move, game.reward, new_state, game.over))
 
+    frame_iteration += 1
 
     if game.over:
         game.over = False
@@ -108,5 +115,7 @@ while True:
         snake = Snake(game.screen)
         food = Food(game.screen, snake)
     
+        frame_iteration = 0
+
     pygame.display.flip()
     pygame.time.Clock().tick(20)
