@@ -20,87 +20,93 @@ trainer = QTrainer(model, lr=LR, gamma=gamma)
 memory = deque(maxlen=MAX_MEMORY)
 record = 0
 
+pygame.init()
 game = Game()
 snake = Snake(game.screen)
 food = Food(game.screen, snake)
 
-game.food = food
-game.snake = snake
-
 epsilon = 0
-def next_move(old_state, n_games):
+def get_next_snake_move(current_state, n_games):
     epsilon = 80 - n_games
     move = [0] * 3
     
     if random.randint(0, 200) < epsilon:
         move[random.randint(0, 2)] = 1
     else:
-        state_tensor = torch.tensor(old_state, dtype=torch.float)
+        state_tensor = torch.tensor(current_state, dtype=torch.float)
         prediction = model(state_tensor)
         move_index = torch.argmax(prediction).item()
         move[move_index] = 1
     
     return move
-index = 0
+
+def food_collision(snake, food):
+    return snake.head_cords == food.cords
+def wall_collision(snake):
+    return snake.head_cords.x >= SCREEN_WIDTH or snake.head_cords.x < 0 or \
+        snake.head_cords.y >= SCREEN_HEIGHT or snake.head_cords.y < 0
+def snake_collision(snake):
+    return snake.head_cords in snake.body[1:]
+
 while True:
-    old_state = snake.get_state(food)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and snake.direction != Direction.DOWN:
-                snake.direction = Direction.UP
-            elif event.key == pygame.K_DOWN and snake.direction != Direction.UP:
-                snake.direction = Direction.DOWN
-            elif event.key == pygame.K_LEFT and snake.direction != Direction.RIGHT:
-                snake.direction = Direction.LEFT
-            elif event.key == pygame.K_RIGHT and snake.direction != Direction.LEFT:
-                snake.direction = Direction.RIGHT
-    game.draw()
-    food.draw()    
+    
+    current_state = snake.get_state(food)
+    snake_move = get_next_snake_move(current_state, game.n_games)
+    
+    if snake_move.index(1) == 1:
+        snake.direction = Direction((snake.direction.value - 1) % 4)
+    elif snake_move.index(1) == 2:
+        snake.direction = Direction((snake.direction.value + 1) % 4)
+
+    game.draw() 
     snake.move()
-    index += 1
-    game.detect_collisions()
-    if game.game_over:
-        game.reset()
-    elif food.doesFoodExist:
+    
+    if wall_collision(snake) or snake_collision(snake):
+        print("Wall Colliision @ ", snake.head_cords) if wall_collision(snake) else print("Snake Collision @ ", snake.head_cords)
+        game.reward = -10
+        game.over = True
+    elif food_collision(snake, food):
+        print("Food Collision @ ", food.cords)
+        game.score += 1
+        game.reward = 10
+        food.exists = False
+
+    if food.exists:
         snake.body.pop()
     else:
-        food.move(snake)
+        food.place(snake)
+    
     snake.draw()
+    food.draw()
 
     new_state = snake.get_state(food)
-    
-    #pygame.image.save(game.screen, "./images/" + str(index) + "-" + '-'.join([str(n)  for n in new_state]) + ".jpg")
+    trainer.train_step(current_state, snake_move, game.reward, new_state, game.over)
+    memory.append((current_state, snake_move, game.reward, new_state, game.over))
+
+
+    if game.over:
+        game.over = False
+        print(len(memory))
+        if len(memory) > BATCH_SIZE:
+            mini_sample = random.sample(memory, BATCH_SIZE)        
+        else:
+            mini_sample = memory
+        
+        states, actions, rewards, next_states, overs = zip(*mini_sample)
+        trainer.train_step(states, actions, rewards, next_states, overs)
+
+        if game.score > record:
+            record = game.score
+            model.save()
+            print("Game: ", game.n_games, " Score: ", game.score, "Record: ", record)
+        
+        game = Game(game.n_games)
+        snake = Snake(game.screen)
+        food = Food(game.screen, snake)
     
     pygame.display.flip()
     pygame.time.Clock().tick(20)
-    
-    
-    # move = next_move(old_state, game.n_games)
-    # if move.index(1) == 2:
-    #     snake.direction = Direction((snake.direction.value + 1) % 4)
-    # elif move.index(1) == 1:
-    #     snake.direction = Direction((snake.direction.value - 1) % 4)
-    # snake._move(food.doesFoodExist)
-    # new_state = snake.get_state(food.cords)
-    # trainer.train_step(old_state, move, game.reward, new_state, game.game_over)
-    
-    # memory.append((old_state, move, game.reward, new_state, game.game_over))
-
-    # if game.game_over:
-    #     game.reset(snake)
-    #     game.n_games += 1
-    #     if len(memory) > BATCH_SIZE:
-    #         mini_sample = random.sample(memory, BATCH_SIZE)        
-    #     else:
-    #         mini_sample = memory
-    
-    #     states, actions, rewards, next_states, dones = zip(*mini_sample)
-    #     trainer.train_step(states, actions, rewards, next_states, dones)
-
-    #     if game.score > record:
-    #         record = game.score
-    #         model.save()
-    #         print("Game: ", game.n_games, " Score: ", game.score, "Record: ", record)

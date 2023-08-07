@@ -7,71 +7,72 @@ State = Enum('State', [
     'DIR_U', 'DIR_D', 'FOO_L', 'FOO_R', 'FOO_U', 'FOO_D'
 ], start=0)
 
+BLUE = (135, 206, 250)
+
 class Snake(pygame.sprite.Sprite):
     def __init__(self, screen):
         super(Snake, self).__init__()
-        # TODO bug can't add third box
-        # TODO put this in common.py, but we have #block bug ^^^
         self.body = SNAKE_ORGIN.copy()
         self.direction = Direction.RIGHT
         self.screen = screen
-        self.head = self.body[0]
-        self.draw()
+        self.head_cords = self.body[0]
+        self.block_surface = pygame.Surface((BOX_SIZE, BOX_SIZE))
     def draw(self):
-        block = pygame.Surface((BOX_SIZE, BOX_SIZE))
-        block.fill(WHITE)
-        self.screen.blits([(block, (cord.x, cord.y)) for cord in self.body])
+        self.block_surface.fill(BLUE)
+        self.screen.blit(self.block_surface, (self.head_cords.x, self.head_cords.y))
+        self.block_surface.fill(WHITE)
+        self.screen.blits([(self.block_surface, (cord.x, cord.y)) for cord in self.body[1:]])
     def move(self):
         if self.direction == Direction.RIGHT:
-            self.body.insert(0, Point(self.head.x + BOX_SIZE, self.head.y))
+            self.body.insert(0, Point(self.head_cords.x + BOX_SIZE, self.head_cords.y))
         elif self.direction == Direction.DOWN:
-            self.body.insert(0, Point(self.head.x, self.head.y + BOX_SIZE))
+            self.body.insert(0, Point(self.head_cords.x, self.head_cords.y + BOX_SIZE))
         elif self.direction == Direction.LEFT:
-            self.body.insert(0, Point(self.head.x - BOX_SIZE, self.head.y))
+            self.body.insert(0, Point(self.head_cords.x - BOX_SIZE, self.head_cords.y))
         elif self.direction == Direction.UP:
-            self.body.insert(0, Point(self.head.x, self.head.y - BOX_SIZE))
-        self.head = self.body[0]
+            self.body.insert(0, Point(self.head_cords.x, self.head_cords.y - BOX_SIZE))
+        self.head_cords = self.body[0]
     def get_state(self, food):
         state = [0] * len(State)
         
-        if self.direction == Direction.LEFT:
-            if Point(self.head.x - BOX_SIZE, self.head.y) in self.body or self.head.x == 0:
+        if self.direction == Direction.RIGHT:
+            if Point(self.head_cords.x + BOX_SIZE, self.head_cords.y) in self.body or self.head_cords.x == SCREEN_WIDTH - BOX_SIZE:
                 print("Danger @ STRAIGHT WALL")
                 state[State.DAN_S.value] = 1
-            if Point(self.head.x, self.head.y - BOX_SIZE) in self.body or self.head.y == 0:
+            if Point(self.head_cords.x, self.head_cords.y + BOX_SIZE) in self.body or self.head_cords.y == SCREEN_HEIGHT - BOX_SIZE:
                 print("Danger @ RIGHT WALL")
                 state[State.DAN_R.value] = 1
-            if Point(self.head.x, self.head.y + BOX_SIZE) in self.body or self.head.y == SCREEN_HEIGHT - BOX_SIZE:
+            if Point(self.head_cords.x, self.head_cords.y - BOX_SIZE) in self.body or self.head_cords.y == 0:
                 print("Danger @ LEFT WALL")
                 state[State.DAN_L.value] = 1
-        if self.direction == Direction.RIGHT:
-            if Point(self.head.x + BOX_SIZE, self.head.y) in self.body or self.head.x == SCREEN_WIDTH - BOX_SIZE:
+        if self.direction == Direction.LEFT:
+            if Point(self.head_cords.x - BOX_SIZE, self.head_cords.y) in self.body or self.head_cords.x == 0:
                 print("Danger @ STRAIGHT WALL")
                 state[State.DAN_S.value] = 1
-            if Point(self.head.x, self.head.y + BOX_SIZE) in self.body or self.head.y == SCREEN_HEIGHT - BOX_SIZE:
+            if Point(self.head_cords.x, self.head_cords.y - BOX_SIZE) in self.body or self.head_cords.y == 0:
                 print("Danger @ RIGHT WALL")
                 state[State.DAN_R.value] = 1
-            if Point(self.head.x, self.head.y - BOX_SIZE) in self.body or self.head.y == 0:
+            if Point(self.head_cords.x, self.head_cords.y + BOX_SIZE) in self.body or self.head_cords.y == SCREEN_HEIGHT - BOX_SIZE:
                 print("Danger @ LEFT WALL")
                 state[State.DAN_L.value] = 1
         if self.direction == Direction.UP:
-            if Point(self.head.x, self.head.y - BOX_SIZE) in self.body or self.head.y == 0:
+            if Point(self.head_cords.x, self.head_cords.y - BOX_SIZE) in self.body or self.head_cords.y == 0:
                 print("Danger @ STRAIGHT WALL")
                 state[State.DAN_S.value] = 1
-            if Point(self.head.x + BOX_SIZE, self.head.y) in self.body or self.head.x == SCREEN_WIDTH - BOX_SIZE:
+            if Point(self.head_cords.x + BOX_SIZE, self.head_cords.y) in self.body or self.head_cords.x == SCREEN_WIDTH - BOX_SIZE:
                 print("Danger @ RIGHT WALL")
                 state[State.DAN_L.value] = 1
-            if Point(self.head.x - BOX_SIZE, self.head.y) in self.body or self.head.x == 0:
+            if Point(self.head_cords.x - BOX_SIZE, self.head_cords.y) in self.body or self.head_cords.x == 0:
                 print("Danger @ LEFT WALL")
                 state[State.DAN_R.value] = 1
         if self.direction == Direction.DOWN:
-            if Point(self.head.x, self.head.y + BOX_SIZE) in self.body or self.head.y == SCREEN_HEIGHT - BOX_SIZE:
+            if Point(self.head_cords.x, self.head_cords.y + BOX_SIZE) in self.body or self.head_cords.y == SCREEN_HEIGHT - BOX_SIZE:
                 print("Danger @ STRAIGHT WALL")
                 state[State.DAN_S.value] = 1
-            if Point(self.head.x - BOX_SIZE, self.head.y) in self.body or self.head.x == 0:
+            if Point(self.head_cords.x - BOX_SIZE, self.head_cords.y) in self.body or self.head_cords.x == 0:
                 print("Danger @ RIGHT WALL")
                 state[State.DAN_R.value] = 1
-            if Point(self.head.x + BOX_SIZE, self.head.y) in self.body or self.head.x == SCREEN_WIDTH - BOX_SIZE:
+            if Point(self.head_cords.x + BOX_SIZE, self.head_cords.y) in self.body or self.head_cords.x == SCREEN_WIDTH - BOX_SIZE:
                 print("Danger @ LEFT WALL")
                 state[State.DAN_L.value] = 1
         
@@ -84,13 +85,13 @@ class Snake(pygame.sprite.Sprite):
         elif self.direction == Direction.RIGHT:
             state[State.DIR_R.value] = 1
         
-        if food.cords.x < self.head.x:
+        if food.cords.x < self.head_cords.x:
             state[State.FOO_L.value] = 1
-        elif food.cords.x > self.head.x:
+        elif food.cords.x > self.head_cords.x:
             state[State.FOO_R.value] = 1
-        if food.cords.y < self.head.y:
+        if food.cords.y < self.head_cords.y:
             state[State.FOO_U.value] = 1
-        elif food.cords.y > self.head.y:
+        elif food.cords.y > self.head_cords.y:
             state[State.FOO_D.value] = 1
 
         return state
