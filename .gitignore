@@ -5,3 +5,5 @@ lib
 .ignore
 pyvenv.cfg
 model
+images/*
+.DS_Store

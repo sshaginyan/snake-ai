@@ -49,11 +49,21 @@ def wall_collision(snake):
 def snake_collision(snake):
     return snake.head_cords in snake.body[1:len(snake.body)-2]
 
+# index = 0
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        # elif event.type == pygame.KEYDOWN:
+        #     if event.key == pygame.K_UP and snake.direction != Direction.DOWN:
+        #         snake.direction = Direction.UP
+        #     elif event.key == pygame.K_DOWN and snake.direction != Direction.UP:
+        #         snake.direction = Direction.DOWN
+        #     elif event.key == pygame.K_LEFT and snake.direction != Direction.RIGHT:
+        #         snake.direction = Direction.LEFT
+        #     elif event.key == pygame.K_RIGHT and snake.direction != Direction.LEFT:
+        #         snake.direction = Direction.RIGHT
     
     current_state = snake.get_state(food)
     snake_move = get_next_snake_move(current_state, game.n_games)
@@ -97,7 +107,6 @@ while True:
 
     if game.over:
         game.over = False
-        print(len(memory))
         if len(memory) > BATCH_SIZE:
             mini_sample = random.sample(memory, BATCH_SIZE)        
         else:
@@ -117,5 +126,6 @@ while True:
     
         frame_iteration = 0
 
+    #pygame.image.save(game.screen, "./images/" + str(index) + "-" + '-'.join([str(n)  for n in new_state]) + ".jpg")
     pygame.display.flip()
     pygame.time.Clock().tick(20)
