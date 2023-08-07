@@ -8,4 +8,4 @@ SCREEN_HEIGHT = 600
 WHITE = (255, 255, 255)
 Point = namedtuple("Point", ['x', 'y'])
 Direction = Enum('Direction', ['UP', 'LEFT', 'DOWN', 'RIGHT'], start=0)
-SNAKE_ORGIN = [Point(75, 25), Point(50, 25), Point(25, 25)]
+SNAKE_ORGIN = [Point(50, 25), Point(25, 25), Point(0, 25)]
