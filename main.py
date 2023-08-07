@@ -15,9 +15,7 @@ gamma = 0.9
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 
-#glob.glob("/home/adam/*.txt")
-#model = torch.load("./model/model.pth") if len(glob.glob("./model/*.pth")) == 1 else LinearQNet(11, 256, 3)
-model = LinearQNet(11, 256, 3)
+model = torch.load("./model/model.pth") if len(glob.glob("./model/*.pth")) == 1 else LinearQNet(11, 256, 3)
 trainer = QTrainer(model, lr=LR, gamma=gamma)
 memory = deque(maxlen=MAX_MEMORY)
 record = 0
@@ -29,22 +27,23 @@ food = Food(game.screen, snake)
 game.food = food
 game.snake = snake
 
-# epsilon = 0
-# def next_move(old_state, n_games):
-#     epsilon = 80 - n_games
-#     move = [0] * 3
+epsilon = 0
+def next_move(old_state, n_games):
+    epsilon = 80 - n_games
+    move = [0] * 3
     
-#     if random.randint(0, 200) < epsilon:
-#         move[random.randint(0, 2)] = 1
-#     else:
-#         state_tensor = torch.tensor(old_state, dtype=torch.float)
-#         prediction = model(state_tensor)
-#         move_index = torch.argmax(prediction).item()
-#         move[move_index] = 1
+    if random.randint(0, 200) < epsilon:
+        move[random.randint(0, 2)] = 1
+    else:
+        state_tensor = torch.tensor(old_state, dtype=torch.float)
+        prediction = model(state_tensor)
+        move_index = torch.argmax(prediction).item()
+        move[move_index] = 1
     
-#     return move
-
+    return move
+index = 0
 while True:
+    old_state = snake.get_state(food)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -58,10 +57,10 @@ while True:
                 snake.direction = Direction.LEFT
             elif event.key == pygame.K_RIGHT and snake.direction != Direction.LEFT:
                 snake.direction = Direction.RIGHT
-
     game.draw()
-    food.draw()
+    food.draw()    
     snake.move()
+    index += 1
     game.detect_collisions()
     if game.game_over:
         game.reset()
@@ -70,13 +69,15 @@ while True:
     else:
         food.move(snake)
     snake.draw()
+
+    new_state = snake.get_state(food)
+    
+    #pygame.image.save(game.screen, "./images/" + str(index) + "-" + '-'.join([str(n)  for n in new_state]) + ".jpg")
     
     pygame.display.flip()
     pygame.time.Clock().tick(20)
-
     
     
-    # old_state = snake.get_state(food)
     # move = next_move(old_state, game.n_games)
     # if move.index(1) == 2:
     #     snake.direction = Direction((snake.direction.value + 1) % 4)
