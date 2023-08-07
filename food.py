@@ -7,17 +7,14 @@ RED = (255, 0, 0)
 class Food(pygame.sprite.Sprite):
     def __init__(self, screen, snake):
         super(Food, self).__init__()
-        self.doesFoodExist = True
+        self.exists = True
         self.screen = screen
-        self.move(snake)
-        
-        
+        self.place(snake)
         self.food_surface = pygame.Surface((BOX_SIZE, BOX_SIZE))
         self.food_surface.fill(RED)
-        self.draw()
-    def move(self, snake):
-        self.doesFoodExist = True
-        self.cords = Point(snake.head.x, snake.head.y)
+    def place(self, snake):
+        self.exists = True
+        self.cords = Point(snake.head_cords.x, snake.head_cords.y)
         while self.cords in snake.body:
             self.cords = Point(
                 random.randrange(0, SCREEN_WIDTH - BOX_SIZE, BOX_SIZE),
